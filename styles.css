@@ -57,6 +57,10 @@
   font-size: var(--font-preferred-size, var(--font-text-size));
 }
 
+.canvas-node > .canvas-card-folding-title.canvas-card-folding-font-scaled {
+  font-size: calc(var(--ccf-font-base, var(--font-text-size, 16px)) * var(--canvas-card-folding-font-scale));
+}
+
 .canvas-node > .canvas-card-folding-title > :is(h1, h2, h3, h4, h5, h6, span, .inline-title) {
   display: block;
   margin: 0;

@@ -1,4 +1,5 @@
 import { Modal, Plugin, setIcon } from "obsidian";
+import { CanvasCardFontBridge } from "./canvas-card-font.js";
 import { firstHeading, prependHeading } from "./heading.js";
 
 const FOLD_KEY = "canvasCardFolding";
@@ -80,16 +81,19 @@ export default class CanvasCardFolding extends Plugin {
   canvases = new Map();
   cards = new WeakMap();
   dialogs = new Set();
+  fontBridge = new CanvasCardFontBridge(this.cards, patch);
 
   onload() {
     const connect = () => this.connectCanvases();
     this.registerEvent(this.app.workspace.on("file-open", connect));
     this.registerEvent(this.app.workspace.on("layout-change", connect));
     this.registerEvent(this.app.workspace.on("active-leaf-change", connect));
+    this.registerEvent(this.app.workspace.on("css-change", () => this.connectCardFont()));
     this.app.workspace.onLayoutReady(connect);
   }
 
   onunload() {
+    this.fontBridge.disconnect();
     for (const dialog of this.dialogs) dialog.close();
     for (const canvas of this.canvases.keys()) this.disconnect(canvas);
   }
@@ -106,6 +110,11 @@ export default class CanvasCardFolding extends Plugin {
     for (const canvas of this.canvases.keys()) {
       if (!open.has(canvas)) this.disconnect(canvas);
     }
+    this.connectCardFont();
+  }
+
+  connectCardFont() {
+    this.fontBridge.connect(this.app.plugins?.getPlugin?.("canvas-card-font"));
   }
 
   connect(canvas) {
@@ -153,6 +162,7 @@ export default class CanvasCardFolding extends Plugin {
       if (!card) continue;
       for (const restore of card.restore) restore();
       card.titleObserver?.disconnect();
+      card.fontObserver?.disconnect();
       card.button?.remove();
       card.title?.remove();
       node.nodeEl.classList.remove(FOLDED_CLASS);
@@ -195,6 +205,7 @@ export default class CanvasCardFolding extends Plugin {
       }),
       patch(node, "destroy", original => function (...args) {
         card.titleObserver?.disconnect();
+        card.fontObserver?.disconnect();
         return original.apply(this, args);
       }),
       patch(node, "startEditing", original => function (...args) {
@@ -224,6 +235,7 @@ export default class CanvasCardFolding extends Plugin {
   renderCard(node, card, data) {
     const element = node.nodeEl;
     if (!foldState(data)) {
+      this.watchCardFont(node, card);
       card.titleObserver?.disconnect();
       card.titleLabel = null;
       card.button?.remove();
@@ -261,6 +273,7 @@ export default class CanvasCardFolding extends Plugin {
       titleStyle = data.type === "text" ? this.getFirstHeading(node, data.text ?? "")?.level : "file";
     }
     this.renderTitle(node, card, foldedTitle, titleStyle);
+    this.watchCardFont(node, card);
 
     const label = folded ? "카드 펼치기" : "카드 접기";
     if (card.button.getAttribute("aria-label") !== label) {
@@ -269,6 +282,30 @@ export default class CanvasCardFolding extends Plugin {
       card.button.title = label;
       setIcon(card.button, folded ? "chevron-right" : "chevron-down");
     }
+  }
+
+  watchCardFont(node, card) {
+    const content = card.expandedHeight && node.contentEl ? node.contentEl : null;
+    if (card.fontContent !== content) {
+      card.fontObserver?.disconnect();
+      card.fontContent = content;
+      if (content) {
+        this.connectCardFont();
+        const { MutationObserver } = content.ownerDocument.defaultView;
+        card.fontObserver ??= new MutationObserver(() => this.renderCardFont(card));
+        card.fontObserver.observe(content, { attributes: true, attributeFilter: ["class", "style"] });
+      }
+    }
+    this.renderCardFont(card);
+  }
+
+  renderCardFont(card) {
+    if (!card.title) return;
+    const content = card.fontContent;
+    const scale = content?.classList.contains("ccf-scaled") ? content.style.getPropertyValue("--ccf-font-scale") : "";
+    if (scale) card.title.style.setProperty("--canvas-card-folding-font-scale", scale);
+    else card.title.style.removeProperty("--canvas-card-folding-font-scale");
+    card.title.classList.toggle("canvas-card-folding-font-scaled", Boolean(scale));
   }
 
   getFirstHeading(node, text) {
@@ -344,6 +381,7 @@ export default class CanvasCardFolding extends Plugin {
     button.title = applied ? "접기 없애기" : "접기 만들기";
     button.setAttribute("aria-pressed", String(applied));
     if (menu.menuEl.lastElementChild === button) return false;
+    this.connectCardFont();
     menu.menuEl.append(button);
     return true;
   }
