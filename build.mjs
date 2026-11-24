@@ -1,5 +1,8 @@
-import { copyFile } from "node:fs/promises";
+import { copyFile, readFile } from "node:fs/promises";
 import { build } from "esbuild-wasm";
+
+const markedLicense = await readFile(new URL("./node_modules/marked/LICENSE", import.meta.url), "utf8");
+const licenseNotice = markedLicense.trimEnd().replaceAll("*/", "* /");
 
 await build({
   entryPoints: ["src/main.js"],
@@ -8,6 +11,7 @@ await build({
   platform: "node",
   target: "es2022",
   external: ["obsidian"],
+  banner: { js: "/* Bundled dependency notice for Marked\n\n" + licenseNotice + "\n*/" },
   legalComments: "inline",
 });
 
