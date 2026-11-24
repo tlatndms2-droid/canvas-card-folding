@@ -1,0 +1,9 @@
+{
+  "id": "canvas-card-folding",
+  "name": "Canvas Card Folding",
+  "version": "0.6.0",
+  "minAppVersion": "1.12.7",
+  "description": "Fold Canvas text and Markdown note cards down to a title.",
+  "author": "Canvas Card Folding",
+  "isDesktopOnly": true
+}

@@ -1,0 +1,81 @@
+.canvas-menu > .canvas-card-folding-toolbar-button[aria-pressed="true"] {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.canvas-node > .canvas-card-folding-button {
+  align-items: center;
+  background: var(--background-primary);
+  border-radius: var(--radius-s);
+  box-shadow: none;
+  color: var(--text-accent);
+  display: flex;
+  height: 26px;
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-end: 6px;
+  width: 26px;
+  z-index: 1;
+}
+
+.canvas-node > .canvas-card-folding-button:hover,
+.canvas-node > .canvas-card-folding-button:focus-visible {
+  background: var(--background-modifier-hover);
+  color: var(--text-accent-hover);
+}
+
+.canvas-node > .canvas-card-folding-button > svg {
+  width: 18px;
+  height: 18px;
+}
+
+.canvas-node > .canvas-card-folding-title,
+.canvas-node.canvas-card-folding-folded > .canvas-node-label,
+.canvas-node.canvas-card-folding-folded .canvas-node-content,
+.canvas-node.is-editing > .canvas-card-folding-button,
+.canvas-wrapper.mod-readonly .canvas-node > .canvas-card-folding-button {
+  display: none;
+}
+
+.canvas-node.canvas-card-folding-folded > .canvas-card-folding-title {
+  align-content: center;
+  display: block;
+  font-family: var(--font-interface);
+  font-size: var(--font-ui-medium);
+  font-weight: var(--font-semibold);
+  inset: 0 39px 0 12px;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
+}
+
+.canvas-node > .canvas-card-folding-title.markdown-rendered {
+  font-family: var(--font-text);
+  font-size: var(--font-preferred-size, var(--font-text-size));
+}
+
+.canvas-node > .canvas-card-folding-title > :is(h1, h2, h3, h4, h5, h6, span, .inline-title) {
+  display: block;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.canvas-node.canvas-card-folding-folded > .canvas-card-folding-button {
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+}
+
+.canvas-card-folding-form label {
+  display: grid;
+  gap: var(--size-4-2);
+}
+
+.canvas-card-folding-form .modal-button-container {
+  margin-top: var(--size-4-4);
+}
